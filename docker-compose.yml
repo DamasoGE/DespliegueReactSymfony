@@ -1,0 +1,40 @@
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: DockerfileFrontendFDGE
+    container_name: frontendFDGE
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules # sirve para sacarlo a un volumen independiente, estaría mejor con el dockerignore
+    environment:
+      - CHOKIDAR_USEPOLLING=true # Activa polling para asegurar detección de cambios en Docker
+    networks:
+      - redwebFDGE
+  backend:
+    build:
+      context: ./backend
+      dockerfile: DockerfileBackendFDGE
+    container_name: backendFDGE
+    command: bash -c "composer install && php -S 0.0.0.0:8000 -t public"
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+    networks:
+      - redwebFDGE
+  nginx:
+    build:
+      context: ./web
+      dockerfile: DockerfileWebFDGE
+    container_name: webFDGE
+    ports:
+      - "80:80" # si tienes problemas con el puerto 80 cambia el puerto externo aquí
+    networks:
+      - redwebFDGE
+
+networks:
+  redwebFDGE:
+    driver: bridge
